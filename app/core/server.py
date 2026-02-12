@@ -1,7 +1,7 @@
 import socket
+import asyncio
 from typing import Optional
-from .life_cycle import RagaLifeCycle
-from .big_logger import BigLogger
+from . import RagaLifeCycle, BigLogger
 
 logger = BigLogger(__name__)
 
@@ -12,7 +12,8 @@ class RagaServer:
         'port',
         'title',
         'description',
-        'life_cycle'
+        'life_cycle',
+        '_shutdown_event'
     )
 
     def __init__(
@@ -28,32 +29,39 @@ class RagaServer:
         self.title: str = title
         self.description: str = description
         self.life_cycle: Optional[RagaLifeCycle]  = life_cycle
+        self._shutdown_event = asyncio.Event()
 
-    def run(self):
+    async def run(self):
         try:
             # Server startup
             if self.life_cycle:
-                self.life_cycle.on_startup()
+                await self.life_cycle.on_startup()
             else:
-                self.init_server()
+                await self.init_server()
 
-            while True:
-                pass
+            logger.info("Server is running... Press Ctrl+C to stop.")
+            await self._shutdown_event.wait()
 
-        except KeyboardInterrupt:
-            # Server shutdown
+        except asyncio.CancelledError:
+            logger.warning("Server Cancelled")
+
+        finally:
+            # Shutdown
             if self.life_cycle:
-                self.life_cycle.on_shutdown()
-
+                await self.life_cycle.on_shutdown()
             else:
-                self.shut_server()
+                await self.shut_server()
 
+    def stop(self):
+        logger.warning("Shutdown signal received.")
+        self._shutdown_event.set()
 
-    def init_server(self):
+    async def init_server(self):
         logger.info("Initializing server...")
         logger.info(f"Server can be accessed on - {self.host}:{self.port}")
         logger.info(f"** This is a simulation")
 
-    def shut_server(self):
-        logger.info("Server shuting down...")
+    async def shut_server(self):
+        logger.info(f"Shutting server at {self.host}:{self.port}")
         logger.info("Shutdown complete")
+
