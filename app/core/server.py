@@ -30,19 +30,24 @@ class RagaServer:
         self.life_cycle: Optional[RagaLifeCycle]  = life_cycle
 
     def run(self):
+        try:
+            # Server startup
+            if self.life_cycle:
+                self.life_cycle.on_startup()
+            else:
+                self.init_server()
 
-        if self.life_cycle:
-            self.life_cycle.on_startup()
-        else:
-            self.init_server()
+            while True:
+                pass
 
+        except KeyboardInterrupt:
+            # Server shutdown
+            if self.life_cycle:
+                self.life_cycle.on_shutdown()
 
-    def shutdown(self):
-        if self.life_cycle:
-            self.life_cycle.on_shut_down()
+            else:
+                self.shut_server()
 
-        else:
-            self.shut_server()
 
     def init_server(self):
         logger.info("Initializing server...")
