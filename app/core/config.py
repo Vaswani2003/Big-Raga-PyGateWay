@@ -14,6 +14,7 @@ class AppBaseSettings(BaseSettings):
 class CoreSettings(AppBaseSettings):
     HOST_IP: str = '0.0.0.0'
     PORT : int = 8000
+    MAX_REQUEST_SIZE: int = 1024 * 1024 * 10  # 10 MB
 
 class LoggerConfig(AppBaseSettings):
     LEVEL: Union[int, str]  = logging.DEBUG

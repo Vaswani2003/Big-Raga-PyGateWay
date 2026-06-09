@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import inspect
 import sys
 from pathlib import Path
 from typing import Callable
@@ -60,7 +61,7 @@ class BigLogger:
     def error_decorator(self, reraise: bool = True):
 
         def decorator(fn: Callable):
-            if asyncio.iscoroutinefunction(fn):
+            if inspect.iscoroutinefunction(fn):
                 # IF Fn is async
 
                 async def async_wrapper(*args, **kwargs):
@@ -76,6 +77,8 @@ class BigLogger:
                         if reraise:
                             raise
 
+                return async_wrapper
+
             else:
                 def sync_wrapper(*args, **kwargs):
                     try:
@@ -88,3 +91,7 @@ class BigLogger:
 
                         if reraise:
                             raise
+
+                return sync_wrapper
+
+        return decorator
