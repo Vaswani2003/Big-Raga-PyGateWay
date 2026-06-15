@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional
 from . import RagaLifeCycle, BigLogger, get_core_settings
+from services import HTTPParser
 
 logger = BigLogger(__name__)
 settings = get_core_settings()
@@ -149,12 +150,14 @@ class RagaServer:
             logger.info("Accepting client connection from {}".format(writer.get_extra_info('peername')))
 
             raw_data = await reader.read(settings.MAX_REQUEST_SIZE)
-            decoded_data = raw_data.decode('utf-8')
-
-            logger.debug(f"Received raw data: {decoded_data}")
-
-            # TODO : Implement request parsing, routing, and response building logic here.
+            request = HTTPParser.parse_request(raw_data)
+            logger.debug(f"Converted raw request to HTTPRequest object: {request.model_dump()}")
+            logger.info(f"Received {request.method} request for {request.path}")
+            
+            # Insert Router logic here 
+            
             body = "<html><body><h1>BigRaga is running</h1><p>Your browser reached handle_client successfully.</p></body></html>"
+            
             response = (
                 "HTTP/1.1 200 OK\r\n"
                 "Content-Type: text/html; charset=utf-8\r\n"
